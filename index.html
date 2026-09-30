@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f6f5f0">
   <meta name="description" content="Make room for what matters. A calmer, clearer way to keep track of your day.">
+  <script>
+    const themePreference = window.matchMedia("(prefers-color-scheme: dark)");
+    let savedTheme;
+    try { savedTheme = localStorage.getItem("daymark-theme"); } catch {}
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      document.querySelector('meta[name="theme-color"]').content = theme === "dark" ? "#191e19" : "#f6f5f0";
+    }
+    applyTheme(savedTheme === "light" || savedTheme === "dark" ? savedTheme : themePreference.matches ? "dark" : "light");
+  </script>
   <title>Daymark — a little more headspace</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,11 +31,43 @@
       --green-dark: #36573b;
       --lime: #d8e9a8;
       --coral: #e68c70;
+      --secondary: #54584f;
+      --task-text: #42473e;
+      --completed: #a4a69e;
+      --time: #92958a;
+      --subtle: #85877f;
+      --pill: #f0f2e8;
+      --card-foot: #faf9f5;
+      --check-border: #d3d5ca;
+      --track: #e7e7dd;
+      --on-green: #ffffff;
       font-family: "DM Sans", sans-serif;
       color: var(--ink);
       background: var(--paper);
       font-synthesis: none;
       text-rendering: optimizeLegibility;
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --ink: #edf0e7;
+      --muted: #adb5a5;
+      --paper: #191e19;
+      --card: #232b23;
+      --line: #364034;
+      --green: #aecb92;
+      --green-dark: #c5dfa9;
+      --lime: #3c5031;
+      --secondary: #c3cbb9;
+      --task-text: #d9dfd0;
+      --completed: #8d9885;
+      --time: #a7b09e;
+      --subtle: #a7b09e;
+      --pill: #34432d;
+      --card-foot: #20271f;
+      --check-border: #69775e;
+      --track: #46533e;
+      --on-green: #1c2919;
     }
 
     * { box-sizing: border-box; }
@@ -46,15 +88,24 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(32, 37, 31, .09);
+      border-bottom: 1px solid var(--line);
       animation: arrive .55s ease both;
     }
 
     .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; letter-spacing: 0; }
-    .brand-mark { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 9px; background: var(--green); color: white; }
+    .brand-mark { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 9px; background: var(--green); color: var(--on-green); }
     .brand-mark svg { width: 15px; height: 15px; }
-    .nav-link { font-size: 13px; font-weight: 600; color: #54584f; transition: color .2s; }
+    .nav-link { font-size: 13px; font-weight: 600; color: var(--secondary); transition: color .2s; }
     .nav-link:hover { color: var(--green-dark); }
+
+    .header-actions { display: flex; align-items: center; gap: 16px; }
+    .theme-toggle { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--card); color: var(--green-dark); cursor: pointer; }
+    .theme-toggle:hover { background: var(--pill); }
+    .theme-toggle:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+    .theme-toggle svg { width: 19px; height: 19px; }
+    .theme-toggle .sun-icon { display: none; }
+    [data-theme="dark"] .theme-toggle .sun-icon { display: block; }
+    [data-theme="dark"] .theme-toggle .moon-icon { display: none; }
 
     main {
       flex: 1;
@@ -72,7 +123,7 @@
     h1 em { color: var(--green); font-weight: 500; }
     .lede { max-width: 380px; margin: 22px 0 29px; color: var(--muted); font-size: 15px; line-height: 1.75; }
     .actions { display: flex; align-items: center; gap: 18px; }
-    .button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 19px; border: 0; border-radius: 7px; background: var(--green); color: white; font-size: 13px; font-weight: 700; transition: background .2s, transform .2s; }
+    .button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 19px; border: 0; border-radius: 7px; background: var(--green); color: var(--on-green); font-size: 13px; font-weight: 700; transition: background .2s, transform .2s; }
     .button:hover { background: var(--green-dark); transform: translateY(-1px); }
     .button svg { width: 15px; height: 15px; }
     .quiet-note { color: var(--muted); font-size: 12px; }
@@ -80,27 +131,27 @@
     .demo-wrap { position: relative; width: 100%; max-width: 450px; justify-self: end; animation: arrive .7s .16s ease both; }
     .demo-wrap::before { content: ""; position: absolute; z-index: -1; top: -21px; right: -20px; width: 86px; height: 86px; border-radius: 26px; background: var(--lime); transform: rotate(12deg); }
     .demo-wrap::after { content: ""; position: absolute; z-index: -1; bottom: -21px; left: -21px; width: 52px; height: 52px; border: 1px solid #e9b39e; border-radius: 50%; }
-    .task-card { overflow: hidden; border: 1px solid #eeece5; border-radius: 12px; background: var(--card); box-shadow: 0 22px 60px rgba(43, 49, 38, .09); }
+    .task-card { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--card); box-shadow: 0 22px 60px rgba(43, 49, 38, .09); }
     .card-head { display: flex; align-items: center; justify-content: space-between; padding: 22px 24px 20px; border-bottom: 1px solid var(--line); }
     .date-label { margin: 0 0 4px; color: var(--muted); font-size: 11px; font-weight: 600; }
     .card-title { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: 24px; font-weight: 500; }
-    .day-pill { padding: 7px 10px; border-radius: 5px; background: #f0f2e8; color: var(--green-dark); font-size: 10px; font-weight: 700; }
+    .day-pill { padding: 7px 10px; border-radius: 5px; background: var(--pill); color: var(--green-dark); font-size: 10px; font-weight: 700; }
     .task-list { padding: 5px 24px 13px; }
-    .task { min-height: 63px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f0eee8; cursor: pointer; }
+    .task { min-height: 63px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
     .task:last-child { border-bottom: 0; }
-    .check { width: 18px; height: 18px; flex: 0 0 18px; display: grid; place-items: center; border: 1.5px solid #d3d5ca; border-radius: 50%; color: white; transition: background .2s, border-color .2s; }
+    .check { width: 18px; height: 18px; flex: 0 0 18px; display: grid; place-items: center; border: 1.5px solid var(--check-border); border-radius: 50%; color: var(--on-green); transition: background .2s, border-color .2s; }
     .check svg { width: 11px; height: 11px; opacity: 0; transform: scale(.7); transition: .2s; }
-    .task-text { flex: 1; color: #42473e; font-size: 12px; transition: color .2s; }
+    .task-text { flex: 1; color: var(--task-text); font-size: 12px; transition: color .2s; }
     .task.done .check { border-color: var(--green); background: var(--green); }
     .task.done .check svg { opacity: 1; transform: scale(1); }
-    .task.done .task-text { color: #a4a69e; text-decoration: line-through; }
-    .task-time { color: #92958a; font-size: 10px; }
-    .card-foot { display: flex; align-items: center; justify-content: space-between; padding: 15px 24px; background: #faf9f5; color: var(--muted); font-size: 10px; }
+    .task.done .task-text { color: var(--completed); text-decoration: line-through; }
+    .task-time { color: var(--time); font-size: 10px; }
+    .card-foot { display: flex; align-items: center; justify-content: space-between; padding: 15px 24px; background: var(--card-foot); color: var(--muted); font-size: 10px; }
     .progress { display: flex; align-items: center; gap: 8px; }
-    .progress-track { width: 64px; height: 4px; overflow: hidden; border-radius: 5px; background: #e7e7dd; }
+    .progress-track { width: 64px; height: 4px; overflow: hidden; border-radius: 5px; background: var(--track); }
     .progress-fill { width: 40%; height: 100%; border-radius: inherit; background: var(--green); transition: width .25s; }
 
-    footer { min-height: 62px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(32, 37, 31, .09); color: #85877f; font-size: 11px; }
+    footer { min-height: 62px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); color: var(--subtle); font-size: 11px; }
     .footer-note { display: flex; align-items: center; gap: 7px; }
     .sun { width: 8px; height: 8px; border-radius: 50%; background: var(--coral); }
 
@@ -133,7 +184,13 @@
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="m4.5 10.2 3.4 3.3 7.6-7.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         daymark
       </a>
-      <a class="nav-link" href="#today">See your day <span aria-hidden="true">↗</span></a>
+      <div class="header-actions">
+        <a class="nav-link" href="#today">See your day <span aria-hidden="true">↗</span></a>
+        <button class="theme-toggle" type="button" aria-label="Dark mode" aria-pressed="false" title="Switch to dark mode">
+          <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg>
+          <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+        </button>
+      </div>
     </header>
 
     <main id="top">
@@ -170,6 +227,26 @@
     <footer><span>Small steps add up.</span><span class="footer-note"><span class="sun" aria-hidden="true"></span> Made for real life</span></footer>
   </div>
   <script>
+    const themeToggle = document.querySelector(".theme-toggle");
+    function updateThemeToggle() {
+      const dark = document.documentElement.dataset.theme === "dark";
+      themeToggle.setAttribute("aria-pressed", String(dark));
+      themeToggle.title = `Switch to ${dark ? "light" : "dark"} mode`;
+    }
+    updateThemeToggle();
+    themeToggle.addEventListener("click", () => {
+      savedTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      applyTheme(savedTheme);
+      updateThemeToggle();
+      try { localStorage.setItem("daymark-theme", savedTheme); } catch {}
+    });
+    themePreference.addEventListener("change", (event) => {
+      if (savedTheme !== "light" && savedTheme !== "dark") {
+        applyTheme(event.matches ? "dark" : "light");
+        updateThemeToggle();
+      }
+    });
+
     const tasks = [...document.querySelectorAll(".task")];
     const count = document.querySelector(".progress-count");
     const fill = document.querySelector(".progress-fill");
